@@ -1,12 +1,17 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"urlshort"
+	"fmt"
+
 )
 
 func main() {
+	filetype, filename := parseArg()
 	mux := defaultMux()
 
 	// Build the MapHandler using the mux as the fallback
@@ -18,19 +23,33 @@ func main() {
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
-	yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
+	filedata , err := parseData(filename)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
+	// var handler http.HandlerFunc
+	handler := func() http.HandlerFunc {
+		if filetype == "yaml" || filetype == "yml" {
+			yamlHandler, err := urlshort.YAMLHandler([]byte(filedata), mapHandler)
+			if err != nil {
+				panic(err)
+			}
+			return yamlHandler
+		}else {
+			JSONHandler, err := urlshort.JSONHandler([]byte(filedata), mapHandler)
+			if err != nil {
+				panic(err)
+			}
+			return JSONHandler
+		}
+	}
+
+
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	http.ListenAndServe(":8080", handler())
 }
+
 
 func defaultMux() *http.ServeMux {
 	mux := http.NewServeMux()
@@ -40,4 +59,15 @@ func defaultMux() *http.ServeMux {
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, world!")
+}
+
+func parseData(filename string)([]byte, error){
+	return ioutil.ReadFile(filename)
+} 
+
+func parseArg()(string, string){
+	filetype := flag.String("filetype", "yml", "File type. Example: yaml, json, etc.")
+	filename := flag.String("filename", "", "Yaml paths file")
+	flag.Parse()
+	return *filetype, *filename
 }
