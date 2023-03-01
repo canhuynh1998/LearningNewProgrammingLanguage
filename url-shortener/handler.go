@@ -1,14 +1,42 @@
 package urlshort
 
 import (
+	"encoding/json"
 	"net/http"
+
 	yaml "gopkg.in/yaml.v3"
 )
 
-type YAMLPath struct {
-	url string `yaml:"url"`
-    path string `yaml:"path"`
+type Path interface {
+	GetPath() string
+	GetUrl() string
 }
+
+type YAMLPath struct {
+	Path string `yaml:"path"`
+	Url  string `yaml:"url"`
+}
+
+func (yml YAMLPath) GetPath() string {
+	return yml.Path
+}
+
+func (yml YAMLPath) GetUrl() string {
+	return yml.Url
+}
+
+type JSONPath struct {
+	Path string `json:"path"`
+	Url  string `json:"url"`
+}
+
+func (yml JSONPath) GetPath() string {
+	return yml.Path
+}
+func (yml JSONPath) GetUrl() string {
+	return yml.Url
+}
+
 
 // MapHandler will return an http.HandlerFunc (which also
 // implements http.Handler) that will attempt to map any
@@ -44,32 +72,65 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 //
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
+
+func buildPathMap(paths []Path) map[string]string {
+	pathMap := make(map[string]string)
+	for _, p := range paths {
+		pathMap[p.GetPath()] = p.GetUrl()
+	}
+	return pathMap
+}
+
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	// TODO: Implement this...
-	urlsFromYaml, err := parseYAML(yml)
+	// TODO: Implement this..
+	urlsFromYaml, err := parseYAMLtoPath(yml)
 	if err != nil {
 		return nil, err
 	}
-
-	mapURL := buildMap(urlsFromYaml)
+	mapURL := buildPathMap(urlsFromYaml)
 	return MapHandler(mapURL, fallback), nil
 }
 
-func buildMap(urlsFromYaml []YAMLPath) (map[string]string) {
-	mapURL := make(map[string]string)
-
-	for _, url := range urlsFromYaml {
-		mapURL[url.path] = url.url
-	}
-	return mapURL
-}
-
-
-func parseYAML(yml []byte) ([]YAMLPath, error){
+func parseYAMLtoPath(yml []byte) ([]Path, error) {
 	var urls []YAMLPath
 	err := yaml.Unmarshal(yml, &urls)
 	if err != nil {
 		return nil, err
 	}
-	return urls, nil
+
+	return yamlToPath(urls), nil
+}
+
+func yamlToPath(yaml []YAMLPath) ([]Path){
+	paths := make([]Path, len(yaml))
+	for i, url := range yaml {
+		paths[i] = url
+	}
+	return paths
+}
+
+func JSONHandler(js []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	urlsFromJson, err := parseJSONtoPath(js)
+	if err != nil {
+		return nil, err
+	}
+	mapURL := buildPathMap(urlsFromJson)
+	return MapHandler(mapURL, fallback), nil
+}
+
+func parseJSONtoPath(js []byte) ([]Path, error) {
+	var urls []JSONPath
+	err := json.Unmarshal(js, &urls)
+	if err != nil {
+		return nil, err
+	}
+	return jsonToPath(urls), nil
+}
+
+func jsonToPath(yaml []JSONPath) ([]Path){
+	paths := make([]Path, len(yaml))
+	for i, url := range yaml {
+		paths[i] = url
+	}
+	return paths
 }

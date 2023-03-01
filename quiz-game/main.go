@@ -28,7 +28,6 @@ func main() {
     questions := parseQuestion(data)
     counts := answerQuestion(questions, timer)
 
-
     fmt.Printf("\nTotal score: %d\n", counts)
 
 }
@@ -55,7 +54,6 @@ func answerQuestion(questions []Question, timer int) (int) {
 
     return counts
 }
-
 
 func compareAnswer(solution string, answer string) (int) {
     if answer == solution {
