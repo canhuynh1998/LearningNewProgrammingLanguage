@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"urlshort"
 	"fmt"
+	
 
 )
 
@@ -36,12 +37,14 @@ func main() {
 				panic(err)
 			}
 			return yamlHandler
-		}else {
+		}else if filetype == "json"{
 			JSONHandler, err := urlshort.JSONHandler([]byte(filedata), mapHandler)
 			if err != nil {
 				panic(err)
 			}
 			return JSONHandler
+		} else {
+
 		}
 	}
 

@@ -3,7 +3,8 @@ package urlshort
 import (
 	"encoding/json"
 	"net/http"
-
+	"database/sql"
+	pg"github.com/lib/pq"
 	yaml "gopkg.in/yaml.v3"
 )
 
