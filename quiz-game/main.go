@@ -61,6 +61,7 @@ func compareAnswer(solution string, answer string) (int) {
     }
     return 0
 }
+
 func parseQuestion(data [][] string) []Question {
     questions := make([]Question, len(data))
 
