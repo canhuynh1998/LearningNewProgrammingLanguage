@@ -2,7 +2,7 @@
 - `go mod init path` is equivalent to `npm init`
 - `go get ...` is equivalent to `npm install`. But deprecated, use `go install` instead
 <details open>
-    <summary>Good Practices</summary>
+    <summary><b><mark>Good Practices</b></mark></summary>
         <blockquote>
 
 ### Formatting: use tab for indentation
@@ -10,6 +10,10 @@
 - Use mixedCaps or MixedCaps
         <blockquote>
 </details>  
+
+<details open>
+    <summary><b><mark>Fundamentals</mark></b></summary>
+        <blockquote>
 
 <details open>
         <summary>Pointer Stuff</summary>
@@ -52,3 +56,19 @@ fmt.Println(*ptr2)
 - There are receivers and senders and senders MUST close the channel when it's done to avoid deadlock.
 - Sending to a channel is a blocking operation
 </details>
+        <blockquote>
+</details> 
+
+<details open>
+    <summary><b><mark>Backend API</b></mark></summary>
+      <blockquote>
+        <details open>
+        <summary><b><mark>Fiber</b></mark></summary>
+          
+- Similar to ExpressJS
+- Reference: https://dev.to/koddr/build-a-restful-api-on-go-fiber-postgresql-jwt-and-swagger-docs-in-isolated-docker-containers-475j
+- Reference Repo: https://github.com/koddr/tutorial-go-fiber-rest-api
+        
+    </details>
+</blockquote>
+</details>  
