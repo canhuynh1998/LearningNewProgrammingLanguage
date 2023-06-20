@@ -43,8 +43,6 @@ func main() {
 				panic(err)
 			}
 			return JSONHandler
-		} else {
-
 		}
 	}
 

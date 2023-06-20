@@ -1,5 +1,6 @@
 # Learning Golang Notes
-
+- `go mod init path` is equivalent to `npm init`
+- `go get ...` is equivalent to `npm install`. But deprecated, use `go install` instead
 <details open>
     <summary>Good Practices</summary>
         <blockquote>
@@ -41,4 +42,13 @@ fmt.Println(*ptr2)
     - **If already used, then should keep using it for the API consistency**
     - To by-pass the default value. Example: int has default value 0 but pointer will be nil
 
+</details>
+
+
+<details open>
+        <summary>Concurrency</summary>
+
+### Channel
+- There are receivers and senders and senders MUST close the channel when it's done to avoid deadlock.
+- Sending to a channel is a blocking operation
 </details>
