@@ -66,6 +66,10 @@ fmt.Println(*ptr2)
         <summary><b><mark>Fiber</b></mark></summary>
           
 - Similar to ExpressJS
+- `pq` has official package documentation for ORM but should use `pgx` instead. But these are drivers
+- Context `Ctx` is similar to `req` in Express
+- Support Rate Limiter:  "github.com/gofiber/fiber/v2/middleware/limiter"
+- Handle CORS errors: "github.com/gofiber/fiber/v2/middleware/cors"
 - Reference: https://dev.to/koddr/build-a-restful-api-on-go-fiber-postgresql-jwt-and-swagger-docs-in-isolated-docker-containers-475j
 - Reference Repo: https://github.com/koddr/tutorial-go-fiber-rest-api
         
