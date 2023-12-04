@@ -1,0 +1,2 @@
+- To use yaml.Unmarshal -> The struct has to be exported which means the first letter of each attribute will be uppercase
+- To import handler.go to the main -> Have to create a new package using go mod init ***package name***
