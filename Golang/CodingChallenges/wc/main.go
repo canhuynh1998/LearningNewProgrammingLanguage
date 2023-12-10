@@ -2,82 +2,85 @@ package main
 
 import (
 	"bufio"
-	// "unicode/utf8"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 )
 
-
-func main(){
+func main() {
 	cmdArgs, err := readCmdArgs()
-
-	if err != nil  || len(cmdArgs) < 2 {
-		log.Fatal(err)
+	if err != nil || len(cmdArgs) < 2 {
+		log.Fatal(err.Error())
 	}
-	result, _ := count(cmdArgs[1], cmdArgs[2])
+	result := ""
+	if cmdArgs[0] == "ccwc" {
+		if len(cmdArgs) == 2{
+			result = countFromFile("", cmdArgs[1])
+		}else{
+			result = countFromFile(cmdArgs[1], cmdArgs[2])
+		}
+	}else {
+		fmt.Println(cmdArgs)
+	}
+
+	
 
 	fmt.Println(result)
 
 }
 
-func count( flag string, filename string) (string, error) {
+func countFromFile(flag string, filename string) (string) {
 	fileContent := readLinesInFile(filename)
-	defer fileContent.Close()
-	if flag == "-l"{
-		return fmt.Sprintf("\t%d %s", countAllLines(fileContent), filename), nil
-	}else if flag == "-c" {
-		return fmt.Sprintf("\t%d %s", countAllBytes(fileContent), filename), nil
-	}else if flag == "-w" {
-		return fmt.Sprintf("\t%d %s", countAllWords(fileContent), filename), nil
-	}else if flag == "-m"{
-		return fmt.Sprintf("\t%d %s", countAllChars(fileContent), filename), nil
+	
+	
+	if flag == "-l" {
+		return fmt.Sprintf("\t%d %s", countAllLines(*fileContent), filename)
+	} else if flag == "-c" {
+		return fmt.Sprintf("\t%d %s", countAllBytes(*fileContent), filename)
+	} else if flag == "-w" {
+		return fmt.Sprintf("\t%d %s", countAllWords(*fileContent), filename)
+	} else if flag == "-m" {
+		return fmt.Sprintf("\t%d %s", countAllChars(*fileContent), filename)
 	}
-	return fmt.Sprintf("\t%d %d %d %s", countAllLines(fileContent), countAllWords(fileContent), countAllWords(fileContent), filename), nil
+	return fmt.Sprintf("\t%d %d %d %s", countAllLines(*fileContent), countAllWords(*fileContent),countAllWords(*fileContent), filename)
 }
 
-func countAllLines(fileContent *os.File) int {
-	scanner := bufio.NewScanner(fileContent)
+func countHelper(scanner *bufio.Scanner) int {
+	count := 0
+	for scanner.Scan() {
+		count++
+	}
+	
+	return count
+}
+
+func countAllLines(fileContent os.File) int {
+	scanner := bufio.NewScanner(&fileContent)
 	scanner.Split(bufio.ScanLines)
-	count := 0
-	for scanner.Scan(){
-		count ++
-	}
-	return count
-}
-func countAllBytes(fileContent *os.File) int {
-	scanner := bufio.NewScanner(fileContent)
-	scanner.Split(bufio.ScanBytes)
-	count := 0
-	for scanner.Scan(){
-		count ++
-	}
-	return count
+	return countHelper(scanner)
 }
 
-func countAllWords(fileContent *os.File) int {
-	scanner := bufio.NewScanner(fileContent)
-	scanner.Split(bufio.ScanWords)
-	count := 0
-	for scanner.Scan(){
-		count ++
-	}
-	return count
+func countAllBytes(fileContent os.File) int {
+
+	scanner := bufio.NewScanner(&fileContent)
+	scanner.Split(bufio.ScanLines)
+	return countHelper(scanner)
 }
 
-func countAllChars(fileContent *os.File) int {
-	scanner := bufio.NewScanner(fileContent)
-	scanner.Split(bufio.ScanRunes)
-	count := 0
-	for scanner.Scan(){
-		count ++
-	}
-	return count
-
+func countAllWords(fileContent os.File) int {
+	scanner := bufio.NewScanner(&fileContent)
+	scanner.Split(bufio.ScanLines)
+	return countHelper(scanner)
 }
 
-func readCmdArgs() ( []string, error){
+func countAllChars(fileContent os.File) int {
+	scanner := bufio.NewScanner(&fileContent)
+	scanner.Split(bufio.ScanLines)
+	return countHelper(scanner)
+}
+
+func readCmdArgs() ([]string, error) {
 	fmt.Print(">")
 	scanner := bufio.NewReader(os.Stdin)
 	cmdInput, err := scanner.ReadString('\n')
