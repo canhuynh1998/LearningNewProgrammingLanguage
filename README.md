@@ -1,5 +1,6 @@
 # Learning Golang Notes
 - `go mod init path` is equivalent to `npm init`
+- `go mod tidy` will synchronize the go.mod with the dependencies of the codebase
 - `go get ...` is equivalent to `npm install`. But deprecated, use `go install` instead
 <details open>
     <summary><b><mark>Good Practices</b></mark></summary>
@@ -67,6 +68,7 @@ fmt.Println(*ptr2)
           
 - Similar to ExpressJS
 - `pq` has official package documentation for ORM but should use `pgx` instead. But these are drivers
+- `GORM` is an ORM and it has an embedded model predefined. Check [here](./backendApi/models/book.go)
 - Context `Ctx` is similar to `req` in Express
 - Support Rate Limiter:  "github.com/gofiber/fiber/v2/middleware/limiter"
 - Handle CORS errors: "github.com/gofiber/fiber/v2/middleware/cors"
