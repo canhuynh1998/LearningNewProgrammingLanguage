@@ -3,3 +3,5 @@ go.mod
 go.sum
 RAMP.md
 cliApps/crackMd5/
+
+**/*.txt

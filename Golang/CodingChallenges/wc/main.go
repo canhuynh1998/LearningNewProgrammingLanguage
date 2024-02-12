@@ -6,13 +6,10 @@ import (
 	"log"
 	"os"
 	"strings"
-	    "unicode/utf8"
 )
 
 func main() {
 	cmdArgs, err := readCmdArgs()
-	    str := "Hello, 世界"
-    fmt.Println("counts =", utf8.RuneCountInString(str))
 	if err != nil || len(cmdArgs) < 2 {
 		log.Fatal(err.Error())
 	}
@@ -32,13 +29,14 @@ func main() {
 }
 
 func countFromFile(flag string, filename string) string {
-
 	if flag == "-l" {
 		return fmt.Sprintf("\t%d %s", countAllLines(filename), filename)
 	} else if flag == "-c" {
 		return fmt.Sprintf("\t%d %s", countAllBytes(filename), filename)
 	} else if flag == "-w" {
 		return fmt.Sprintf("\t%d %s", countAllWords(filename), filename)
+	} else if flag == "-m" {
+		return fmt.Sprintf("\t%d %s", countAllChar(filename), filename)
 	} 
 	return fmt.Sprintf("\t%d %d %d %s", countAllLines(filename), countAllWords(filename), countAllBytes(filename), filename)
 }
@@ -69,6 +67,13 @@ func countAllWords(filename string) int {
 	fileContent := readLinesInFile(filename)
 	scanner := bufio.NewScanner(&fileContent)
 	scanner.Split(bufio.ScanWords)
+	return countHelper(scanner)
+}
+
+func countAllChar(filename string) int {
+	fileContent := readLinesInFile(filename)
+	scanner := bufio.NewScanner(&fileContent)
+	scanner.Split(bufio.ScanRunes)
 	return countHelper(scanner)
 }
 
