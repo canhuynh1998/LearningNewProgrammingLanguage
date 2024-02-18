@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"regexp"
 )
 
 func main() {
@@ -21,7 +22,10 @@ func main() {
 			result = countFromFile(cmdArgs[1], cmdArgs[2])
 		}
 	} else {
-		fmt.Println(cmdArgs)
+		isFile, _:= regexp.MatchString(`\w+\.txt$`, cmdArgs[1])
+		if isFile {
+			result = countFromFile(cmdArgs[4], cmdArgs[1])
+		}
 	}
 
 	fmt.Println(result)
