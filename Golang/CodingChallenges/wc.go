@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 type Result struct {
@@ -28,17 +29,37 @@ func main() {
 	if fi.Size() > 0 {
 		Execution("")
 	} else {
-		var computeResult []Result
-		for _, filename := range flag.Args() {
-			currentResult := Execution(filename)
-			computeResult = append(computeResult, currentResult)
-			Display(currentResult, flags)
-		}
-		Display(computeTotal(computeResult), flags)
-
+		runConcurrently(flags)
+		runSequentially(flags)
 	}
-
 }
+
+func runConcurrently(flags map[string]bool) {
+	start := time.Now()
+	var computeResult []Result
+	for _, filename := range flag.Args() {
+		currentResult := Execution(filename)
+		computeResult = append(computeResult, currentResult)
+		Display(currentResult, flags)
+	}
+	Display(computeTotal(computeResult), flags)
+	done := time.Since(start)
+	fmt.Printf("Time took for runnning concurrently %s\n\n", done)
+}
+
+func runSequentially(flags map[string]bool) {
+	start := time.Now()
+	var computeResult []Result
+	for _, filename := range flag.Args() {
+		currentResult := Execution_(filename)
+		computeResult = append(computeResult, currentResult)
+		Display(currentResult, flags)
+	}
+	Display(computeTotal(computeResult), flags)
+	done := time.Since(start)
+	fmt.Printf("Time took for runnning sequentially %s\n", done)
+}
+
 func ParseFlag() map[string]bool {
 	countingBytes := flag.Bool("c", false, "count bytes from the input")
 	countingLines := flag.Bool("l", false, "count lines from the input")
@@ -85,9 +106,13 @@ func Execution(filename string) Result {
 	return Result{name: filename, lines: <-lChan, words: <-wChan, bytes: <-bChan, chars: <-cChan}
 }
 
+func Execution_(filename string) Result {
+	content := BuildContent(filename)
+	return Result{name: filename, lines: CountLines_(content), words:  CountWords_(content), bytes: CountBytes_(content), chars: CountChars_(content)}
+}
 
-func Display(result Result, flags map[string] bool){
-	if flags["countBytes"]{
+func Display(result Result, flags map[string]bool) {
+	if flags["countBytes"] {
 		fmt.Printf("  %d %s\n", result.bytes, result.name)
 	} else if flags["countLines"] {
 		fmt.Printf("  %d %s\n", result.lines, result.name)
@@ -95,23 +120,23 @@ func Display(result Result, flags map[string] bool){
 		fmt.Printf("  %d %s\n", result.words, result.name)
 	} else if flags["countChars"] {
 		fmt.Printf("  %d %s\n", result.chars, result.name)
-	}else{
-		fmt.Printf("    %d   %d   %d %s\n", result.lines, result.words, result.bytes, result.name)
+	} else {
+		fmt.Printf("    %-5d   %-5d   %-5d %s\n", result.lines, result.words, result.bytes, result.name)
 	}
 }
 
-func computeTotal(results []Result) Result{
+func computeTotal(results []Result) Result {
 	totalBytes := 0
 	totalLines := 0
 	totalWords := 0
 	totalChars := 0
-	for _, result := range(results){
+	for _, result := range results {
 		totalBytes += result.bytes
 		totalLines += result.lines
 		totalWords += result.words
 		totalChars += result.chars
 	}
-	return Result{name:"total", bytes: totalBytes, lines: totalLines, words: totalWords, chars: totalChars}
+	return Result{name: "total", bytes: totalBytes, lines: totalLines, words: totalWords, chars: totalChars}
 }
 
 func CountBytes(content string, bChan chan int) {
@@ -141,4 +166,20 @@ func CountHepler(file io.Reader, spiltFunc bufio.SplitFunc) int {
 		count += 1
 	}
 	return count
+}
+
+func CountBytes_(content string) int {
+	return CountHepler(strings.NewReader(content), bufio.ScanBytes)
+}
+
+func CountLines_(content string) int {
+	return CountHepler(strings.NewReader(content), bufio.ScanLines)
+}
+
+func CountWords_(content string) int {
+	return CountHepler(strings.NewReader(content), bufio.ScanWords)
+}
+
+func CountChars_(content string) int {
+	return CountHepler(strings.NewReader(content), bufio.ScanRunes)
 }
