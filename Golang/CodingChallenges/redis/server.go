@@ -71,7 +71,7 @@ func respond(commandArgs []string) string {
 	case "echo":
 		return Echo(commandArgs[4])
 	case "set":
-		return Set(commandArgs[4], commandArgs[6])
+		return Set(commandArgs[4], commandArgs[6:])
 	case "get":
 		return Get(commandArgs[4])
 	}
@@ -86,45 +86,49 @@ func Echo(s string) string {
 	return fmt.Sprintf("+%s", s)
 }
 
-func Set(key string, valueMeta ...string) string {
+func Set(key string, valueMeta []string) string {
 	lock.Lock()
 	defer lock.Unlock()
-	// timeData, err := getExpiredTime(valueMeta[1], valueMeta[2])
-	// if err != nil {
-	// 	return fmt.Sprintf("-%s", err.Error())
-	// }
-	// REDIS[key] = Value{value: valueMeta[0], createdAt: timeData["createdAt"], expiredAt: timeData["expiredAt"]}
-	REDIS[key] = Value{value: valueMeta[0], createdAt: time.Now()}
+	value := Value{value: valueMeta[0], createdAt: time.Now()}
+	if len(valueMeta) > 1 {
+		expiredAt, e := getExpiredTime(valueMeta[2], valueMeta[4], value.createdAt)
+		if e != nil {
+			log.Fatal(e.Error())
+		}
+		value.expiredAt = expiredAt
+	}
+
+	REDIS[key] = value
 	return "+OK"
 }
 
-func getExpiredTime(expriedCommand string, expriedAfter string) (map[string]time.Time, error) {
-	result := make(map[string]time.Time)
-	result["createdAt"] = time.Now()
+func getExpiredTime(expriedCommand string, expriedAfter string, createdAt time.Time) (time.Time, error) {
+
 	expiredTime, e := strconv.Atoi(expriedAfter)
 	if e != nil {
-		return nil, e
+		return time.Time{}, e
 	}
-	if expriedCommand == "EX" {
-		result["expiredAt"] = result["createdAt"].Add(time.Second * time.Duration(expiredTime))
-	} else if expriedCommand == "PX" {
-		result["expiredAt"] = result["createdAt"].Add(time.Millisecond * time.Duration(expiredTime))
-	} else if expriedCommand == "EXAT" {
-		result["expiredAt"] = time.Unix(int64(expiredTime), 0)
-	} else if expriedCommand == "PXAT" {
-		result["expiredAt"] = time.UnixMilli(int64(expiredTime))
-	} else {
-		return nil, errors.New("Invalid command")
+
+	switch strings.ToLower(expriedCommand) {
+	case "ex":
+		return createdAt.Add(time.Second * time.Duration(expiredTime)), nil
+	case "px":
+		return createdAt.Add(time.Millisecond * time.Duration(expiredTime)), nil
+	case "exat":
+		return time.Unix(int64(expiredTime), 0), nil
+	case "pxat":
+		return time.UnixMilli(int64(expiredTime)), nil
 	}
-	return result, nil
+	return time.Time{}, errors.New("Invalid command")
 }
 
 func Get(key string) string {
 	lock.RLock()
 	defer lock.RUnlock()
 	value, exist := REDIS[key]
-	if !exist {
+	if !exist || time.Now().After(value.expiredAt){
 		return "_"
 	}
+
 	return fmt.Sprintf("+%s", value.value)
 }
