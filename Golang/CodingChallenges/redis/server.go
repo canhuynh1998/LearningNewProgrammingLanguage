@@ -86,12 +86,15 @@ func Echo(s string) string {
 	return fmt.Sprintf("+%s", s)
 }
 
-func Set(key string, valueMeta []string) string {
+func Set(key string, valueMetaData []string) string {
 	lock.Lock()
 	defer lock.Unlock()
-	value := Value{value: valueMeta[0], createdAt: time.Now()}
-	if len(valueMeta) > 1 {
-		expiredAt, e := getExpiredTime(valueMeta[2], valueMeta[4], value.createdAt)
+	fmt.Println(valueMetaData)
+	value := Value{value: valueMetaData[0], createdAt: time.Now()}
+	if len(valueMetaData) > 1 {
+		expiryInfo := map[string]string{"expiredAfter": valueMetaData[4], "expriedCommand": valueMetaData[2]}
+
+		expiredAt, e := getExpiredTime(expiryInfo, value.createdAt)
 		if e != nil {
 			log.Fatal(e.Error())
 		}
@@ -102,14 +105,14 @@ func Set(key string, valueMeta []string) string {
 	return "+OK"
 }
 
-func getExpiredTime(expriedCommand string, expriedAfter string, createdAt time.Time) (time.Time, error) {
+func getExpiredTime(expryInfo map[string]string, createdAt time.Time) (time.Time, error) {
 
-	expiredTime, e := strconv.Atoi(expriedAfter)
+	expiredTime, e := strconv.Atoi(expryInfo["expiredAfter"])
 	if e != nil {
-		return time.Time{}, e
+		log.Fatal(e.Error())
 	}
 
-	switch strings.ToLower(expriedCommand) {
+	switch strings.ToLower(expryInfo["expriedCommand"]) {
 	case "ex":
 		return createdAt.Add(time.Second * time.Duration(expiredTime)), nil
 	case "px":
@@ -126,7 +129,7 @@ func Get(key string) string {
 	lock.RLock()
 	defer lock.RUnlock()
 	value, exist := REDIS[key]
-	if !exist || time.Now().After(value.expiredAt){
+	if !exist || time.Now().After(value.expiredAt) {
 		return "_"
 	}
 
