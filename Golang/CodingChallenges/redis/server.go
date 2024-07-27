@@ -21,7 +21,6 @@ var REDIS = map[string]Value{}
 var lock = sync.RWMutex{}
 
 func main() {
-	fmt.Println("Hello")
 	l, err := net.Listen("tcp", "0.0.0.0:6380")
 	if err != nil {
 		log.Fatal(err)
@@ -56,7 +55,8 @@ func resp(conn net.Conn) {
 }
 
 func deserialize(buffer []byte) []string {
-	return strings.Split(string(buffer), "\r\n")
+	deserializedStr := strings.Split(string(buffer), "\r\n")
+	return deserializedStr[:len(deserializedStr) - 1]
 }
 
 func serialize(respond string) string {
@@ -64,7 +64,6 @@ func serialize(respond string) string {
 }
 
 func respond(commandArgs []string) string {
-
 	switch strings.ToLower(commandArgs[2]) {
 	case "ping":
 		return Ping()
@@ -89,9 +88,9 @@ func Echo(s string) string {
 func Set(key string, valueMetaData []string) string {
 	lock.Lock()
 	defer lock.Unlock()
-	fmt.Println(valueMetaData)
 	value := Value{value: valueMetaData[0], createdAt: time.Now()}
 	if len(valueMetaData) > 1 {
+		fmt.Println(valueMetaData[2])
 		expiryInfo := map[string]string{"expiredAfter": valueMetaData[4], "expriedCommand": valueMetaData[2]}
 
 		expiredAt, e := getExpiredTime(expiryInfo, value.createdAt)
